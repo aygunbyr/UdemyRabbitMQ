@@ -1,6 +1,8 @@
 ﻿using RabbitMQ.Client;
+using RabbitMQ.Client.Events;
 using System;
 using System.Text;
+using System.Threading;
 
 namespace UdemyRabbitMQ.Subscriber
 {
@@ -15,15 +17,26 @@ namespace UdemyRabbitMQ.Subscriber
 
             var channel = connection.CreateModel();
 
-            channel.QueueDeclare(queue: "hello-queue", durable: true, exclusive: false, autoDelete: false);
+            // global: true => prefetchCount 6 ise 2 subscriber varsa => 3+3 mesaj gider
+            // global: false ise ve prefetchCount 1 ise => her bir subscribera birer birer gider
+            channel.BasicQos(prefetchSize: 0, prefetchCount: 1, global: false);
 
-            string message = "hello world";
+            // Exchange kullanılmıyor default exchange
+            // Subscriberlar mesajları birer birer alıyor, mesajlar çoğaltılmıyor. Bir mesajı sadece bir subscriber alıyor.
 
-            var messageBody = Encoding.UTF8.GetBytes(message);
+            var consumer = new EventingBasicConsumer(channel);
 
-            channel.BasicPublish(exchange: string.Empty, routingKey: "hello-queue", basicProperties: null, body: messageBody);
+            channel.BasicConsume(queue: "hello-queue", autoAck: false, consumer: consumer);
 
-            Console.WriteLine("Mesaj gönderilmiştir");
+            consumer.Received += (object sender, BasicDeliverEventArgs e) =>
+            {
+                var message = Encoding.UTF8.GetString(e.Body.ToArray());
+
+                Thread.Sleep(1500);
+                Console.WriteLine($"Gelen Mesaj: {message}");
+
+                channel.BasicAck(deliveryTag: e.DeliveryTag, multiple: false);
+            };
 
             Console.ReadLine();
         }

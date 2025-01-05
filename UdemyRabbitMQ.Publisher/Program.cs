@@ -1,5 +1,6 @@
 ﻿using RabbitMQ.Client;
 using System;
+using System.Linq;
 using System.Text;
 
 namespace UdemyRabbitMQ.Publisher
@@ -15,19 +16,23 @@ namespace UdemyRabbitMQ.Publisher
 
             var channel = connection.CreateModel();
 
+            // Eğer yoksa oluşturur, varsa exception fırlatmaz.
+            // Aynı isimde queue ve farklı konfigürasyonla çalıştırırsanız exception fırlatır.
             channel.QueueDeclare(
                 queue: "hello-queue",
                 durable: true,
                 exclusive: false,
                 autoDelete: false);
 
-            string message = "hello world";
+            Enumerable.Range(1, 50).ToList().ForEach(x => {
+                string message = $"Message {x}";
 
-            var messageBody = Encoding.UTF8.GetBytes(message);
+                var messageBody = Encoding.UTF8.GetBytes(message);
 
-            channel.BasicPublish(exchange: string.Empty, routingKey: "hello-queue", basicProperties: null, body: messageBody);
+                channel.BasicPublish(exchange: string.Empty, routingKey: "hello-queue", basicProperties: null, body: messageBody);
+                Console.WriteLine($"Mesaj gönderilmiştir : {message}");
 
-            Console.WriteLine("Mesaj gönderilmiştir");
+            });
 
             Console.ReadLine();
         }
