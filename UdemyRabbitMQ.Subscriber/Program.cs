@@ -17,16 +17,25 @@ namespace UdemyRabbitMQ.Subscriber
 
             var channel = connection.CreateModel();
 
-            // global: true => prefetchCount 6 ise 2 subscriber varsa => 3+3 mesaj gider
-            // global: false ise ve prefetchCount 1 ise => her bir subscribera birer birer gider
+            #region geçici kuyruk
+            // Bu kuyruk geçicidir, consumer uygulaması kapatıldığında silinir.
+            var randomQueueName = channel.QueueDeclare().QueueName;
+            #endregion
+
+            #region kalıcı kuyruk
+            //var randomQueueName = "log-database-save-queue"; // Artık random kuyruk ismi kullanmıyoruz çünkü kalıcı yapacağız.
+            // Kalıcı kuyruk oluşturuyoruz artık. Uygulama kapansa bile queue silinmiyor.
+            //channel.QueueDeclare(queue: randomQueueName, durable: true, exclusive: false, autoDelete: false);
+            #endregion
+
+            channel.QueueBind(queue: randomQueueName, exchange: "logs-fanout", routingKey: string.Empty);
+
             channel.BasicQos(prefetchSize: 0, prefetchCount: 1, global: false);
-
-            // Exchange kullanılmıyor default exchange
-            // Subscriberlar mesajları birer birer alıyor, mesajlar çoğaltılmıyor. Bir mesajı sadece bir subscriber alıyor.
-
             var consumer = new EventingBasicConsumer(channel);
 
-            channel.BasicConsume(queue: "hello-queue", autoAck: false, consumer: consumer);
+            channel.BasicConsume(queue: randomQueueName, autoAck: false, consumer: consumer);
+
+            Console.WriteLine("Loglar dinleniyor...");
 
             consumer.Received += (object sender, BasicDeliverEventArgs e) =>
             {

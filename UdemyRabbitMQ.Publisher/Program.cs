@@ -16,20 +16,15 @@ namespace UdemyRabbitMQ.Publisher
 
             var channel = connection.CreateModel();
 
-            // Eğer yoksa oluşturur, varsa exception fırlatmaz.
-            // Aynı isimde queue ve farklı konfigürasyonla çalıştırırsanız exception fırlatır.
-            channel.QueueDeclare(
-                queue: "hello-queue",
-                durable: true,
-                exclusive: false,
-                autoDelete: false);
+            //channel.QueueDeclare(queue: "hello-queue",durable: true, exclusive: false, autoDelete: false);
+            channel.ExchangeDeclare(exchange: "logs-fanout", type: ExchangeType.Fanout, durable: true);
 
             Enumerable.Range(1, 50).ToList().ForEach(x => {
-                string message = $"Message {x}";
+                string message = $"log {x}";
 
                 var messageBody = Encoding.UTF8.GetBytes(message);
 
-                channel.BasicPublish(exchange: string.Empty, routingKey: "hello-queue", basicProperties: null, body: messageBody);
+                channel.BasicPublish(exchange: "logs-fanout", routingKey: string.Empty, basicProperties: null, body: messageBody);
                 Console.WriteLine($"Mesaj gönderilmiştir : {message}");
 
             });
