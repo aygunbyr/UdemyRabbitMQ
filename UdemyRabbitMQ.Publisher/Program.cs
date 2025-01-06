@@ -25,25 +25,23 @@ namespace UdemyRabbitMQ.Publisher
             var channel = connection.CreateModel();
 
             //channel.QueueDeclare(queue: "hello-queue",durable: true, exclusive: false, autoDelete: false);
-            channel.ExchangeDeclare(exchange: "logs-direct", type: ExchangeType.Direct, durable: true);
-
-            Enum.GetNames(typeof(LogNames)).ToList().ForEach(x =>
-            {
-                var routeKey = $"route-{x}";
-                var queueName = $"direct-queue-{x}";
-                channel.QueueDeclare(queue: queueName, durable: true, exclusive: false, autoDelete: false);
-                channel.QueueBind(queue: queueName, exchange: "logs-direct", routingKey: routeKey, arguments: null);
-            });
+            channel.ExchangeDeclare(exchange: "logs-topic", type: ExchangeType.Topic, durable: true);
 
             Enumerable.Range(1, 50).ToList().ForEach(x => {
                 LogNames logType = (LogNames) new Random().Next(1, 5);
-                string message = $"log-type: {logType}";
+                
+
+                Random rnd = new();
+                LogNames log1 = (LogNames)rnd.Next(1, 5);
+                LogNames log2 = (LogNames)rnd.Next(1, 5);
+                LogNames log3 = (LogNames)rnd.Next(1, 5);
+
+                var routeKey = $"{log1}.{log2}.{log3}";
+                string message = $"log-type: {log1}-{log2}-{log3}";
 
                 var messageBody = Encoding.UTF8.GetBytes(message);
 
-                var routeKey = $"route-{logType}";
-
-                channel.BasicPublish(exchange: "logs-direct", routingKey: routeKey, basicProperties: null, body: messageBody);
+                channel.BasicPublish(exchange: "logs-topic", routingKey: routeKey, basicProperties: null, body: messageBody);
                 Console.WriteLine($"Log gönderilmiştir : {message}");
 
             });

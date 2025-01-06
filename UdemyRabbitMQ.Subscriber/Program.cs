@@ -21,7 +21,10 @@ namespace UdemyRabbitMQ.Subscriber
             channel.BasicQos(prefetchSize: 0, prefetchCount: 1, global: false);
             var consumer = new EventingBasicConsumer(channel);
 
-            var queueName = "direct-queue-Critical";
+            var queueName = channel.QueueDeclare().QueueName;
+            //var routeKey = "*.Error.*";
+            var routeKey = "Info.#";
+            channel.QueueBind(queue: queueName, exchange: "logs-topic", routeKey);
 
             channel.BasicConsume(queue: queueName, autoAck: false, consumer: consumer);
 
