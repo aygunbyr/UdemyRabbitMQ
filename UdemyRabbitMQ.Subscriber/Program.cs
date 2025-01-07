@@ -1,6 +1,7 @@
 ﻿using RabbitMQ.Client;
 using RabbitMQ.Client.Events;
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Text;
 using System.Threading;
@@ -22,9 +23,14 @@ namespace UdemyRabbitMQ.Subscriber
             var consumer = new EventingBasicConsumer(channel);
 
             var queueName = channel.QueueDeclare().QueueName;
-            //var routeKey = "*.Error.*";
-            var routeKey = "Info.#";
-            channel.QueueBind(queue: queueName, exchange: "logs-topic", routeKey);
+
+            Dictionary<string, object> headers = new();
+
+            headers.Add("format", "pdf");
+            headers.Add("shape", "a4");
+            headers.Add("x-match", "all");
+
+            channel.QueueBind(queue: queueName, exchange: "header-exchange", routingKey: string.Empty, arguments: headers);
 
             channel.BasicConsume(queue: queueName, autoAck: false, consumer: consumer);
 
