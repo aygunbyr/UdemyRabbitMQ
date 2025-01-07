@@ -1,8 +1,10 @@
 ﻿using RabbitMQ.Client;
+using Shared;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Text.Json;
 
 namespace UdemyRabbitMQ.Publisher
 {
@@ -34,12 +36,24 @@ namespace UdemyRabbitMQ.Publisher
 
             var properties = channel.CreateBasicProperties();
             properties.Headers = headers;
+            properties.Persistent = true; // mesajları kalıcı hale getir
 
-            byte[] message = Encoding.UTF8.GetBytes("header mesajım");
+            Product product = new()
+            {
+                Id = 1,
+                Name = "Pencil",
+                Price = 100,
+                Stock = 10
+            };
+
+            var productJsonString = JsonSerializer.Serialize(product);
+
+            // Resim, pdf her şeyi byte array'e dönüştürebilirsiniz.
+            byte[] message = Encoding.UTF8.GetBytes(productJsonString);
 
             channel.BasicPublish(exchange: "header-exchange", routingKey: string.Empty, basicProperties: properties, body: message);
 
-            Console.WriteLine("mesaj gönderilmiştir");
+            Console.WriteLine("Message has sent");
 
             Console.ReadLine();
         }
