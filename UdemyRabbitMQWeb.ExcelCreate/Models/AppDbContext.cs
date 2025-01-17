@@ -9,6 +9,6 @@ namespace UdemyRabbitMQWeb.ExcelCreate.Models
         {
         }
 
-        DbSet<UserFile> UserFiles { get; set; }
+        public DbSet<UserFile> UserFiles { get; set; }
     }
 }
