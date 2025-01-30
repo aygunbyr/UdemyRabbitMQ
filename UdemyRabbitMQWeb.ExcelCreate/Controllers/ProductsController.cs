@@ -48,7 +48,6 @@ namespace UdemyRabbitMQWeb.ExcelCreate.Controllers
 
             _rabbitMQPublisher.Publish(new Shared.CreateExcelMessage() {
                 FileId = userFile.Id,
-                UserId = user.Id,
             });
 
             // rabbitMQ'ya mesaj gönder
@@ -63,7 +62,10 @@ namespace UdemyRabbitMQWeb.ExcelCreate.Controllers
         {
             var user = await _userManager.FindByNameAsync(User.Identity.Name);
 
-            var userFiles = await _context.UserFiles.Where(f => f.UserId == user.Id).ToListAsync();
+            var userFiles = await _context.UserFiles
+                .Where(f => f.UserId == user.Id)
+                .OrderByDescending(f => f.Id)
+                .ToListAsync();
 
             return View(userFiles);
         }

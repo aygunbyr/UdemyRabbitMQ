@@ -14,6 +14,9 @@ namespace FileCreateWorkerService
 {
     public class Program
     {
+        // 404 Hatasýnýn Çözümü
+        // Önce ExcelCreate uygulamasýný tek baþýna ayaða kaldýrýp excel dosyasý oluþtur
+        // Böylece Queue oluþur ve artýk FileCreateWorkerService hata vermez
         public static void Main(string[] args)
         {
             CreateHostBuilder(args).Build().Run();
